@@ -2,41 +2,53 @@ use sakila;
 
 #1a. Display the first and last names of all actors from the table actor.
 select FIRST_NAME, LAST_NAME from actor;
+
 #1b. Display the first and last name of each actor in a single column in upper case letters. Name the column Actor Name.
 select FIRST_NAME, LAST_NAME,CONCAT(upper(FIRST_NAME) ," ", UPPER(LAST_NAME)) as ACTOR_NAME from actor;
+
 #2a. You need to find the ID number, first name, and last name of an actor, of whom you know only the first name,
 # "Joe." What is one query would you use to obtain this information?.
 select ACTOR_ID, FIRST_NAME, LAST_NAME from actor WHERE upper(FIRST_NAME) = 'JOE';
+
 #2b. Find all actors whose last name contain the letters GEN:
 select FIRST_NAME,LAST_NAME from actor where LAST_NAME like '%GEN%';
+
 #2c. Find all actors whose last names contain the letters LI. This time, order the rows by last name and first name, in that order:
 select FIRST_NAME, LAST_NAME from actor where LAST_NAME like '%LI%' order by LAST_NAME, FIRST_NAME;
+
 #2d. Using IN, display the country_id and country columns of the following countries: Afghanistan, Bangladesh, and China:
 select COUNTRY_ID, COUNTRY from country where country in ('Afghanistan', 'Bangladesh', 'China');
+
 #3a. You want to keep a description of each actor. You don't think you will be performing queries on a description, 
 #so create a column in the table actor named description and use the data type BLOB (Make sure to research the type BLOB, 
 #as the difference between it and VARCHAR are significant).
 alter table actor add( description blob);
 select * from actor;
+
 #3b. Very quickly you realize that entering descriptions for each actor is too much effort. Delete the description column.
 alter table actor drop description ;
 select * from actor;
+
 #4a. List the last names of actors, as well as how many actors have that last name.
 select last_name, count(1) as name_count from actor group by last_name ;
+
 #4b. List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors
 select last_name, count(1) as name_count from actor group by last_name 
 having name_count > 1;
+
 #4c. The actor HARPO WILLIAMS was accidentally entered in the actor table as GROUCHO WILLIAMS. Write a query to fix the record.
 update actor
 set first_name = 'HARPO'
 where first_name= 'GROUCHO' and last_name = 'WILLIAMS' ;
 select * from actor where first_name = 'HARPO';
+
 #4d. Perhaps we were too hasty in changing GROUCHO to HARPO. It turns out that GROUCHO was the correct name after all! In a single query, 
 #if the first name of the actor is currently HARPO, change it to GROUCHO.
 update actor
 set first_name = 'GROUCHO'
 where first_name= 'HARPO' and last_name = 'WILLIAMS' ;
 select * from actor where first_name = 'GROUCHO' and last_name = 'WILLIAMS';
+
 #5a. You cannot locate the schema of the address table. Which query would you use to re-create it?
 create table address_new (id int, full_name varchar(500), 
 street varchar(100), 
@@ -45,20 +57,25 @@ state varchar(100),
 postal_code int, 
 primary key (id)) ;
 select * from address_new;
+
 #6a. Use JOIN to display the first and last names, as well as the address, of each staff member. Use the tables staff and address:
 select first_name, last_name, address  from staff st left outer join address ad on st.address_id = ad.address_id ;
+
 #6b. Use JOIN to display the total amount rung up by each staff member in August of 2005. Use tables staff and payment.
 select st.staff_id, first_name, last_name, sum(amount) as total_amount_aug_2005
 from staff st left outer join payment py on st.staff_id = py.staff_id 
 where concat(year(payment_date),month(payment_date))  = '20058'
 group by staff_id, first_name, last_name;
+
 #6c. List each film and the number of actors who are listed for that film. Use tables film_actor and film. Use inner join.
 select title, description , count(actor_id) as number_of_actors
 from film_actor fa inner join film fm on fa.film_id = fm.film_id
 group by title, description;
+
 #6d. How many copies of the film Hunchback Impossible exist in the inventory system?
 select title, description , count(inventory_id) as number_of_copies
  from film fm inner join inventory inv on fm.film_id = inv.film_id  where title = 'Hunchback Impossible';
+ 
 #6e. Using the tables payment and customer and the JOIN command, list the total paid by each customer. List the customers alphabetically by last name:
 select first_name, last_name , sum(amount) as total_paid  from customer cs left outer join payment py on 
 cs.customer_id = py.customer_id 
@@ -68,7 +85,6 @@ order by last_name ;
 #7a. The music of Queen and Kris Kristofferson have seen an unlikely resurgence. As an unintended consequence, 
 #films starting with the letters `K` and `Q` have also soared in popularity. 
 #Use subqueries to display the titles of movies starting with the letters `K` and `Q` whose language is English.
-
 select title, description , name from film fl
 inner join language lg
 on fl.language_id = lg.language_id 
@@ -76,10 +92,12 @@ where  title like 'Q%' or title like 'K%'
 and name = 'ENGLISH';
 
  #7b. Use subqueries to display all actors who appear in the film `Alone Trip`.
-select first_name,last_name, title, description from film fm 
-inner join film_actor fa on fm.film_id = fa.film_id 
-inner join actor ac on ac.actor_id = fa.actor_id
-where title = 'Alone Trip';
+select first_name,last_name from actor ac
+inner join film_actor fa on ac.actor_id = fa.actor_id 
+where film_id in ( select film_id from film 
+where title = 'Alone Trip');
+
+
 
 #* 7c. You want to run an email marketing campaign in Canada, for which you will need the names and email addresses 
 #of all Canadian customers. Use joins to retrieve this information.
